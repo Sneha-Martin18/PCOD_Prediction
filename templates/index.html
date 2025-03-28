@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCOD Prediction System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #2c3e50;
+            --success-color: #2ecc71;
+            --warning-color: #f1c40f;
+            --danger-color: #e74c3c;
+            --light-bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --border-color: #e1e8ed;
+        }
+
+        body {
+            padding: 20px;
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-title {
+            color: var(--secondary-color);
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            text-align: center;
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: var(--primary-color);
+            border-radius: 2px;
+        }
+
+        .nav-tabs {
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 30px;
+        }
+
+        .nav-tabs .nav-link {
+            color: var(--secondary-color);
+            border: none;
+            padding: 15px 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        .nav-tabs .nav-link:hover {
+            color: var(--primary-color);
+        }
+
+        .form-control {
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 15px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: var(--secondary-color);
+            margin-bottom: 8px;
+        }
+
+        .btn-predict {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn-predict:hover {
+            background-color: #357abd;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            display: none;
+        }
+
+        .result-card.visible {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .prediction-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 10px 0;
+        }
+
+        .accuracy-score {
+            background-color: rgba(46, 204, 113, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .metric-label {
+            color: var(--secondary-color);
+            font-weight: 500;
+            margin-right: 5px;
+        }
+
+        .metric-value {
+            color: var(--success-color);
+            font-weight: 600;
+        }
+
+        .algorithm-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        .input-group .form-control {
+            padding-left: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .page-title {
+                font-size: 2rem;
+            }
+            
+            .nav-tabs .nav-link {
+                padding: 10px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="page-title">PCOD Prediction System</h1>
+        
+        <ul class="nav nav-tabs" id="algorithmTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="slr-tab" data-bs-toggle="tab" data-bs-target="#slr" type="button" role="tab">
+                    <i class="fas fa-chart-line me-2"></i>Simple Linear Regression
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="mlr-tab" data-bs-toggle="tab" data-bs-target="#mlr" type="button" role="tab">
+                    <i class="fas fa-chart-bar me-2"></i>Multiple Linear Regression
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="poly-tab" data-bs-toggle="tab" data-bs-target="#poly" type="button" role="tab">
+                    <i class="fas fa-chart-curve me-2"></i>Polynomial Regression
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="knn-tab" data-bs-toggle="tab" data-bs-target="#knn" type="button" role="tab">
+                    <i class="fas fa-project-diagram me-2"></i>K-Nearest Neighbors
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="logistic-tab" data-bs-toggle="tab" data-bs-target="#logistic" type="button" role="tab">
+                    <i class="fas fa-chart-pie me-2"></i>Logistic Regression
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="algorithmTabsContent">
+            <!-- Simple Linear Regression Tab -->
+            <div class="tab-pane fade show active" id="slr" role="tabpanel">
+                <form id="slrForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="bmi" class="form-label">BMI</label>
+                                <div class="input-group">
+                                    <i class="fas fa-weight"></i>
+                                    <input type="number" class="form-control" id="bmi" required step="0.1" min="18.5" max="35.5">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-predict">
+                        <i class="fas fa-calculator me-2"></i>Predict with Simple Linear Regression
+                    </button>
+                </form>
+                <div class="result-card" id="slrResult">
+                    <h5 class="algorithm-title">
+                        <i class="fas fa-chart-line"></i>
+                        Simple Linear Regression Results
+                    </h5>
+                    <p>Risk Score: <span id="slrPrediction" class="prediction-value">-</span></p>
+                    <div class="accuracy-score">
+                        <span class="metric-label">R² Score:</span> <span id="slrR2" class="metric-value">-</span>
+                    </div>
+                    <p class="algorithm-description">Predicts PCOD risk score based on BMI</p>
+                </div>
+            </div>
+
+            <!-- Multiple Linear Regression Tab -->
+            <div class="tab-pane fade" id="mlr" role="tabpanel">
+                <form id="mlrForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="mlr-age" class="form-label">Age</label>
+                            <div class="input-group">
+                                <i class="fas fa-user"></i>
+                                <input type="number" class="form-control" id="mlr-age" required min="25" max="40">
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="mlr-bmi" class="form-label">BMI</label>
+                            <div class="input-group">
+                                <i class="fas fa-weight"></i>
+                                <input type="number" class="form-control" id="mlr-bmi" required step="0.1" min="18.5" max="35.5">
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="mlr-insulin" class="form-label">Insulin Level</label>
+                            <div class="input-group">
+                                <i class="fas fa-tint"></i>
+                                <input type="number" class="form-control" id="mlr-insulin" required step="0.1" min="5.0" max="22.5">
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="mlr-glucose" class="form-label">Blood Glucose</label>
+                            <div class="input-group">
+                                <i class="fas fa-heartbeat"></i>
+                                <input type="number" class="form-control" id="mlr-glucose" required min="90" max="235">
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="mlr-menstrual" class="form-label">Menstrual Irregularity</label>
+                            <div class="input-group">
+                                <i class="fas fa-calendar-alt"></i>
+                                <select class="form-control" id="mlr-menstrual" required>
+                                    <option value="">Select option</option>
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="mlr-hirsutism" class="form-label">Hirsutism Score</label>
+                            <div class="input-group">
+                                <i class="fas fa-chart-line"></i>
+                                <input type="number" class="form-control" id="mlr-hirsutism" required step="0.1" min="2.0" max="15.5">
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="mlr-testosterone" class="form-label">Testosterone Level</label>
+                            <div class="input-group">
+                                <i class="fas fa-flask"></i>
+                                <input type="number" class="form-control" id="mlr-testosterone" required min="30" max="95">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-predict">
+                        <i class="fas fa-calculator me-2"></i>Predict with Multiple Linear Regression
+                    </button>
+                </form>
+                <div class="result-card" id="mlrResult">
+                    <h5 class="algorithm-title">
+                        <i class="fas fa-chart-bar"></i>
+                        Multiple Linear Regression Results
+                    </h5>
+                    <p>Risk Score: <span id="mlrPrediction" class="prediction-value">-</span></p>
+                    <div class="accuracy-score">
+                        <span class="metric-label">R² Score:</span> <span id="mlrR2" class="metric-value">-</span>
+                    </div>
+                    <p class="algorithm-description">Predicts PCOD risk score using all features</p>
+                </div>
+            </div>
+
+            <!-- Polynomial Regression Tab -->
+            <div class="tab-pane fade" id="poly" role="tabpanel">
+                <form id="polyForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="poly-bmi" class="form-label">BMI</label>
+                                <div class="input-group">
+                                    <i class="fas fa-weight"></i>
+                                    <input type="number" class="form-control" id="poly-bmi" required step="0.1" min="18.5" max="35.5">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-predict">
+                        <i class="fas fa-calculator me-2"></i>Predict with Polynomial Regression
+                    </button>
+                </form>
+                <div class="result-card" id="polyResult">
+                    <h5 class="algorithm-title">
+                        <i class="fas fa-chart-curve"></i>
+                        Polynomial Regression Results
+                    </h5>
+                    <p>Risk Score: <span id="polyPrediction" class="prediction-value">-</span></p>
+                    <div class="accuracy-score">
+                        <span class="metric-label">R² Score:</span> <span id="polyR2" class="metric-value">-</span>
+                    </div>
+                    <p class="algorithm-description">Non-linear prediction of PCOD risk score</p>
+                </div>
+            </div>
+
+            <!-- KNN Tab -->
+            <div class="tab-pane fade" id="knn" role="tabpanel">
+                <form id="knnForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="knn-age" class="form-label">Age</label>
+                            <div class="input-group">
+                                <i class="fas fa-user"></i>
+                                <input type="number" class="form-control" id="knn-age" required min="25" max="40">
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="knn-bmi" class="form-label">BMI</label>
+                            <div class="input-group">
+                                <i class="fas fa-weight"></i>
+                                <input type="number" class="form-control" id="knn-bmi" required step="0.1" min="18.5" max="35.5">
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="knn-insulin" class="form-label">Insulin Level</label>
+                            <div class="input-group">
+                                <i class="fas fa-tint"></i>
+                                <input type="number" class="form-control" id="knn-insulin" required step="0.1" min="5.0" max="22.5">
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="knn-glucose" class="form-label">Blood Glucose</label>
+                            <div class="input-group">
+                                <i class="fas fa-heartbeat"></i>
+                                <input type="number" class="form-control" id="knn-glucose" required min="90" max="235">
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="knn-menstrual" class="form-label">Menstrual Irregularity</label>
+                            <div class="input-group">
+                                <i class="fas fa-calendar-alt"></i>
+                                <select class="form-control" id="knn-menstrual" required>
+                                    <option value="">Select option</option>
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="knn-hirsutism" class="form-label">Hirsutism Score</label>
+                            <div class="input-group">
+                                <i class="fas fa-chart-line"></i>
+                                <input type="number" class="form-control" id="knn-hirsutism" required step="0.1" min="2.0" max="15.5">
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="knn-testosterone" class="form-label">Testosterone Level</label>
+                            <div class="input-group">
+                                <i class="fas fa-flask"></i>
+                                <input type="number" class="form-control" id="knn-testosterone" required min="30" max="95">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-predict">
+                        <i class="fas fa-calculator me-2"></i>Predict with KNN
+                    </button>
+                </form>
+                <div class="result-card" id="knnResult">
+                    <h5 class="algorithm-title">
+                        <i class="fas fa-project-diagram"></i>
+                        K-Nearest Neighbors Results
+                    </h5>
+                    <p>Prediction: <span id="knnPrediction" class="prediction-value">-</span></p>
+                    <div class="accuracy-score">
+                        <span class="metric-label">Accuracy:</span> <span id="knnAccuracy" class="metric-value">-</span>
+                    </div>
+                    <p class="algorithm-description">Classification based on all features</p>
+                </div>
+            </div>
+
+            <!-- Logistic Regression Tab -->
+            <div class="tab-pane fade" id="logistic" role="tabpanel">
+                <form id="logisticForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="logistic-age" class="form-label">Age</label>
+                            <div class="input-group">
+                                <i class="fas fa-user"></i>
+                                <input type="number" class="form-control" id="logistic-age" required min="25" max="40">
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="logistic-bmi" class="form-label">BMI</label>
+                            <div class="input-group">
+                                <i class="fas fa-weight"></i>
+                                <input type="number" class="form-control" id="logistic-bmi" required step="0.1" min="18.5" max="35.5">
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="logistic-insulin" class="form-label">Insulin Level</label>
+                            <div class="input-group">
+                                <i class="fas fa-tint"></i>
+                                <input type="number" class="form-control" id="logistic-insulin" required step="0.1" min="5.0" max="22.5">
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="logistic-glucose" class="form-label">Blood Glucose</label>
+                            <div class="input-group">
+                                <i class="fas fa-heartbeat"></i>
+                                <input type="number" class="form-control" id="logistic-glucose" required min="90" max="235">
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="logistic-menstrual" class="form-label">Menstrual Irregularity</label>
+                            <div class="input-group">
+                                <i class="fas fa-calendar-alt"></i>
+                                <select class="form-control" id="logistic-menstrual" required>
+                                    <option value="">Select option</option>
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="logistic-hirsutism" class="form-label">Hirsutism Score</label>
+                            <div class="input-group">
+                                <i class="fas fa-chart-line"></i>
+                                <input type="number" class="form-control" id="logistic-hirsutism" required step="0.1" min="2.0" max="15.5">
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="logistic-testosterone" class="form-label">Testosterone Level</label>
+                            <div class="input-group">
+                                <i class="fas fa-flask"></i>
+                                <input type="number" class="form-control" id="logistic-testosterone" required min="30" max="95">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-predict">
+                        <i class="fas fa-calculator me-2"></i>Predict with Logistic Regression
+                    </button>
+                </form>
+                <div class="result-card" id="logisticResult">
+                    <h5 class="algorithm-title">
+                        <i class="fas fa-chart-pie"></i>
+                        Logistic Regression Results
+                    </h5>
+                    <p>Prediction: <span id="logisticPrediction" class="prediction-value">-</span></p>
+                    <div class="accuracy-score">
+                        <span class="metric-label">Accuracy:</span> <span id="logisticAccuracy" class="metric-value">-</span>
+                    </div>
+                    <p class="algorithm-description">Probabilistic classification model</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Function to handle form submission
+        async function handleSubmit(formId, resultId) {
+            const form = document.getElementById(formId);
+            const resultCard = document.getElementById(resultId);
+            
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Get form data
+                const formData = {};
+                const inputs = form.querySelectorAll('input, select');
+                inputs.forEach(input => {
+                    formData[input.id.split('-')[1] || input.id] = input.value;
+                });
+                
+                try {
+                    const response = await fetch('/predict', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Update prediction value
+                        const predictionElement = resultCard.querySelector('.prediction-value');
+                        const accuracyElement = resultCard.querySelector('.metric-value');
+                        
+                        if (formId === 'knnForm' || formId === 'logisticForm') {
+                            predictionElement.textContent = data.predictions[formId === 'knnForm' ? 'knn_prediction' : 'logistic_prediction'] === 1 ? 'PCOD' : 'No PCOD';
+                            accuracyElement.textContent = (data.accuracy_scores[formId === 'knnForm' ? 'knn' : 'logistic'].accuracy * 100).toFixed(1) + '%';
+                        } else {
+                            const modelType = formId.split('Form')[0];
+                            predictionElement.textContent = data.predictions[`${modelType}_risk_score`].toFixed(2);
+                            accuracyElement.textContent = data.accuracy_scores[modelType].r2.toFixed(3);
+                        }
+                        
+                        // Show result card
+                        resultCard.style.display = 'block';
+                        setTimeout(() => resultCard.classList.add('visible'), 100);
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                } catch (error) {
+                    alert('Error making prediction: ' + error.message);
+                }
+            });
+        }
+
+        // Initialize form handlers
+        handleSubmit('slrForm', 'slrResult');
+        handleSubmit('mlrForm', 'mlrResult');
+        handleSubmit('polyForm', 'polyResult');
+        handleSubmit('knnForm', 'knnResult');
+        handleSubmit('logisticForm', 'logisticResult');
+    </script>
+</body>
+</html> 
